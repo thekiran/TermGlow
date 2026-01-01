@@ -158,9 +158,15 @@ MenuAction menu_run(void) {
 
             int row = content_y;
 
+            if (hOut != INVALID_HANDLE_VALUE) {
+                SetConsoleTextAttribute(hOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);
+            }
             for (int i = 0; i < title_count; ++i) {
                 term_goto_xy(content_x, row++);
                 printf("%s", title[i]);
+            }
+            if (hOut != INVALID_HANDLE_VALUE) {
+                SetConsoleTextAttribute(hOut, base_attr);
             }
 
             draw_border_line(box_x, row++, box_w, "┣", "━", "┫");
