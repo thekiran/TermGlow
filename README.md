@@ -48,3 +48,6 @@ LiveBanner run-loop
 - If `resources\banner.default.txt` is missing, a minimal fallback banner is created.
 - Run from the project root so the `resources` path resolves.
 - `run-loop` can be stopped with Ctrl+C.
+
+## License
+MIT. See `LICENSE`.
