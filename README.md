@@ -3,6 +3,8 @@
 LiveBanner is a Windows console banner manager and runner. The manager lets you edit or remove the banner, and the runner prints the banner with a simple RGB animation while keeping the cursor usable.
 
 <img width="932" height="554" alt="resim" src="https://github.com/user-attachments/assets/13727ffc-5c50-4548-ab6e-b05b9631073d" />
+<img width="1110" height="615" alt="resim" src="https://github.com/user-attachments/assets/c64f79ac-71d4-4c5c-97c5-05c4dd20d824" />
+
 
 ## Download (Fast)
 Option A: Installer (recommended)
