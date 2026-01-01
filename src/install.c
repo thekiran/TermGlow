@@ -6,8 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _MSC_VER
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "Shell32.lib")
+#pragma comment(lib, "Uuid.lib")
+#endif
 
 static int path_contains_dir(const char* path, const char* dir) {
     if (!path || !dir) return 0;
@@ -27,6 +30,41 @@ static int path_contains_dir(const char* path, const char* dir) {
     }
 
     return 0;
+}
+
+static int set_default_reg_string(HKEY hKey, const char* value) {
+    return RegSetValueExA(hKey, NULL, 0, REG_SZ,
+                          (const BYTE*)value, (DWORD)(strlen(value) + 1)) == ERROR_SUCCESS;
+}
+
+static int create_shell_command_key(const char* base_key, const char* command) {
+    HKEY hKey = NULL;
+    LONG rc = RegCreateKeyExA(HKEY_CURRENT_USER, base_key, 0, NULL, 0,
+                              KEY_SET_VALUE, NULL, &hKey, NULL);
+    if (rc != ERROR_SUCCESS) return 0;
+
+    if (!set_default_reg_string(hKey, "LiveBanner")) {
+        RegCloseKey(hKey);
+        return 0;
+    }
+
+    RegCloseKey(hKey);
+
+    char cmd_key[256];
+    int needed = snprintf(cmd_key, sizeof(cmd_key), "%s\\command", base_key);
+    if (needed < 0 || needed >= (int)sizeof(cmd_key)) return 0;
+
+    rc = RegCreateKeyExA(HKEY_CURRENT_USER, cmd_key, 0, NULL, 0,
+                         KEY_SET_VALUE, NULL, &hKey, NULL);
+    if (rc != ERROR_SUCCESS) return 0;
+
+    if (!set_default_reg_string(hKey, command)) {
+        RegCloseKey(hKey);
+        return 0;
+    }
+
+    RegCloseKey(hKey);
+    return 1;
 }
 
 int install_add_to_path(const char* dir) {
@@ -109,7 +147,11 @@ int install_create_start_menu_shortcut(const char* exe_path) {
     }
 
     char link_path[MAX_PATH];
-    snprintf(link_path, sizeof(link_path), "%s\\LiveBanner.lnk", programs);
+    int link_needed = snprintf(link_path, sizeof(link_path),
+                               "%s\\LiveBanner.lnk", programs);
+    if (link_needed < 0 || link_needed >= (int)sizeof(link_path)) {
+        return 0;
+    }
 
     char exe_dir[MAX_PATH];
     strncpy(exe_dir, exe_path, sizeof(exe_dir) - 1);
@@ -149,4 +191,17 @@ int install_create_start_menu_shortcut(const char* exe_path) {
     if (need_uninit) CoUninitialize();
 
     return SUCCEEDED(hr) ? 1 : 0;
+}
+
+int install_create_context_menu(const char* exe_path) {
+    char command[MAX_PATH + 8];
+    int cmd_needed = snprintf(command, sizeof(command), "\"%s\"", exe_path);
+    if (cmd_needed < 0 || cmd_needed >= (int)sizeof(command)) return 0;
+
+    int ok_dir = create_shell_command_key(
+        "Software\\Classes\\Directory\\shell\\LiveBanner", command);
+    int ok_bg = create_shell_command_key(
+        "Software\\Classes\\Directory\\Background\\shell\\LiveBanner", command);
+
+    return (ok_dir && ok_bg) ? 1 : 0;
 }

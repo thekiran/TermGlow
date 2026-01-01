@@ -9,6 +9,9 @@ int main(int argc, char** argv) {
     if (argc >= 2 && strcmp(argv[1], "run-loop") == 0) {
         return app_run_banner_loop() ? 0 : 1;
     }
+    if (argc >= 2 && strcmp(argv[1], "install") == 0) {
+        return app_run_install() ? 0 : 1;
+    }
 
     // Manager (default)
     return app_run_manager() ? 0 : 1;

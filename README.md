@@ -2,19 +2,19 @@
 
 LiveBanner is a Windows console banner manager and runner. The manager lets you edit or remove the banner, and the runner prints the banner with a simple RGB animation while keeping the cursor usable.
 
-## Download
-Option A: Git clone
-```
-git clone <REPO_URL>
-cd LiveBanner
-```
+## Download (Fast)
+Option A: Installer (recommended)
+1. Download `LiveBannerSetup.exe` from the Releases page.
+2. Run it and finish the setup.
+3. Open a new terminal and type `LiveBanner`.
 
-Option B: ZIP download
-1. Download the ZIP from the repository.
-2. Extract it to a folder such as `C:\LiveBanner`.
-3. Open a terminal in that folder.
+Option B: Portable ZIP
+1. Download the ZIP from the Releases page.
+2. Extract it to a folder (for example `C:\LiveBanner`).
+3. Run `install.bat` (or `LiveBanner.exe install`).
+4. Open a new terminal and type `LiveBanner`.
 
-## Build
+## Build (Developers)
 MSVC:
 ```
 build\win-msvc.bat
@@ -28,17 +28,17 @@ build\win-mingw.bat
 ## Use
 Manager (default):
 ```
-.\LiveBanner.exe
+LiveBanner
 ```
 
 Runner (one-shot):
 ```
-.\LiveBanner.exe run
+LiveBanner run
 ```
 
 Runner (loop):
 ```
-.\LiveBanner.exe run-loop
+LiveBanner run-loop
 ```
 
 ## Notes

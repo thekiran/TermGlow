@@ -5,6 +5,7 @@
 #include "autorun.h"
 #include "banner.h"
 #include "term.h"
+#include "install.h"
 
 #include <windows.h>
 #include <shellapi.h>
@@ -19,6 +20,24 @@ static void open_notepad(const char* path) {
 static int get_exe_path(char* out, size_t cap) {
     DWORD n = GetModuleFileNameA(NULL, out, (DWORD)cap);
     return (n > 0 && n < cap) ? 1 : 0;
+}
+
+static int get_exe_dir(char* out, size_t cap) {
+    char exe_path[512];
+    if (!get_exe_path(exe_path, sizeof(exe_path))) return 0;
+
+    size_t len = strlen(exe_path);
+    if (len + 1 > cap) return 0;
+
+    memcpy(out, exe_path, len + 1);
+    for (int i = (int)len - 1; i >= 0; --i) {
+        if (out[i] == '\\' || out[i] == '/') {
+            out[i] = '\0';
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 // Klavye tusu veya mouse sol tik ile devam
@@ -164,6 +183,34 @@ int app_run_manager(void) {
             show_footer_message(msg);
             wait_key_or_mouse();
         }
+        else if (a == MENU_INSTALL) {
+            const char* msg = NULL;
+            char exe_path[512];
+            char exe_dir[512];
+            if (!get_exe_path(exe_path, sizeof(exe_path)) ||
+                !get_exe_dir(exe_dir, sizeof(exe_dir))) {
+                msg = "EXE yolu alinamadi.";
+            } else {
+                int ok_path = install_add_to_path(exe_dir);
+                int ok_shortcut = install_create_start_menu_shortcut(exe_path);
+                int ok_context = install_create_context_menu(exe_path);
+
+                if (ok_path && ok_shortcut && ok_context) {
+                    msg = "Sistem kurulumu tamamlandi (PATH + Baslat Menusu + Sag Tik).";
+                } else if (!ok_path && !ok_shortcut && !ok_context) {
+                    msg = "Kurulum basarisiz (hicbir oge eklenemedi).";
+                } else if (!ok_path) {
+                    msg = "PATH eklenemedi (Baslat Menusu/Sag Tik eklenmis olabilir).";
+                } else if (!ok_shortcut) {
+                    msg = "Baslat Menusu eklenemedi (PATH/Sag Tik eklenmis olabilir).";
+                } else {
+                    msg = "Sag tik eklenemedi (PATH/Baslat Menusu eklenmis olabilir).";
+                }
+            }
+
+            show_footer_message(msg);
+            wait_key_or_mouse();
+        }
         else if (a == MENU_EXIT) {
             term_clear();
             break;
@@ -175,6 +222,34 @@ int app_run_manager(void) {
     return 1;
 }
 
+int app_run_install(void) {
+    const char* msg = NULL;
+    char exe_path[512];
+    char exe_dir[512];
+    if (!get_exe_path(exe_path, sizeof(exe_path)) ||
+        !get_exe_dir(exe_dir, sizeof(exe_dir))) {
+        msg = "EXE yolu alinamadi.";
+    } else {
+        int ok_path = install_add_to_path(exe_dir);
+        int ok_shortcut = install_create_start_menu_shortcut(exe_path);
+        int ok_context = install_create_context_menu(exe_path);
+
+        if (ok_path && ok_shortcut && ok_context) {
+            msg = "Kurulum tamamlandi. Yeni bir terminal acin.";
+        } else if (!ok_path && !ok_shortcut && !ok_context) {
+            msg = "Kurulum basarisiz (hicbir oge eklenemedi).";
+        } else if (!ok_path) {
+            msg = "PATH eklenemedi (Baslat Menusu/Sag Tik eklenmis olabilir).";
+        } else if (!ok_shortcut) {
+            msg = "Baslat Menusu eklenemedi (PATH/Sag Tik eklenmis olabilir).";
+        } else {
+            msg = "Sag tik eklenemedi (PATH/Baslat Menusu eklenmis olabilir).";
+        }
+    }
+
+    printf("%s\n", msg);
+    return (msg && strstr(msg, "Kurulum tamamlandi") != NULL) ? 1 : 0;
+}
 int app_run_banner_runner(void) {
     fs_write_default_banner_if_missing();
 
@@ -194,4 +269,5 @@ int app_run_banner_loop(void) {
 
     return banner_run_loop(&cfg);
 }
+
 
